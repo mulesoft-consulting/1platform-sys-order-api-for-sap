@@ -1,0 +1,301 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns:sap="http://www.mulesoft.org/schema/mule/sap" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd 
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/sap http://www.mulesoft.org/schema/mule/sap/current/mule-sap.xsd">
+    <http:listener-config name="order-api-spec-httpListenerConfig">
+        <http:listener-connection host="0.0.0.0" port="8081" />
+    </http:listener-config>
+    <sap:outbound-config name="SAP_Connection_Config" doc:name="SAP Outbound" doc:id="4a587a5f-22ec-4652-9857-24aad3739919" >
+		<sap:simple-connection-provider-connection applicationServerHost="${sap.host}" username="${secure::sap.user}" password="${secure::sap.pass}" systemNumber="${sap.sysnr}" client="${sap.client}" language="${sap.lang}" />
+	</sap:outbound-config>
+    <apikit:config name="order-api-spec-config" raml="order-api-spec.raml" outboundHeadersMapName="outboundHeaders" httpStatusVarName="httpStatus" />
+	<flow name="order-api-spec-main">
+        <http:listener config-ref="order-api-spec-httpListenerConfig" path="/api/*">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body>#[payload]</http:body>
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:error-response>
+        </http:listener>
+        <apikit:router config-ref="order-api-spec-config" />
+        <error-handler>
+            <on-error-propagate type="APIKIT:BAD_REQUEST">
+                <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Bad request"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">400</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_FOUND">
+                <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Resource not found"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">404</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:METHOD_NOT_ALLOWED">
+                <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Method not allowed"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">405</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_ACCEPTABLE">
+                <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Not acceptable"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">406</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:UNSUPPORTED_MEDIA_TYPE">
+                <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Unsupported media type"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">415</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_IMPLEMENTED">
+                <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Not Implemented"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">501</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+        </error-handler>
+    </flow>
+    <flow name="order-api-spec-console">
+        <http:listener config-ref="order-api-spec-httpListenerConfig" path="/console/*">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body>#[payload]</http:body>
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:error-response>
+        </http:listener>
+        <apikit:console config-ref="order-api-spec-config" />
+        <error-handler>
+            <on-error-propagate type="APIKIT:NOT_FOUND">
+                <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Resource not found"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">404</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+        </error-handler>
+    </flow>
+    <flow name="get:\order:order-api-spec-config">
+		<ee:transform doc:name="Transform Message" doc:id="a711e7b5-7033-466d-85a7-386497800bc4" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	meta: {
+		messages: [{
+			code: "501",
+			description: "Method not implemented for this resource"
+		}]
+	}
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+    </flow>
+	<flow name="post:\order:application\json:order-api-spec-config">
+		<ee:transform doc:name="Transform Message" doc:id="37b95963-196c-42c7-9c20-7df9e12b9d04" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/xml
+/*
+var orderType = {
+	pickupItems: "PII",
+	shipmentItems: "SHI",
+	partnersItems: "PAI"
+}
+*/
+var deliveryMethod = {
+	PICKUP: "PI",
+	SHIPMENT: "SH"
+}
+var status = {
+	Draft: "D",
+	Completed: "C",
+	Processing: "P"
+}
+---
+{
+	ZSDFM_CREATE_SO_HYBRIS: {
+		"import": {
+			IS_SALES_ORDER: {
+				CUSTOMERID: payload.customerId,
+				STATUS: status[payload.status as String] default "",
+				ITEMS: {(
+					payload.orderItems map (item, i) -> {
+						row: {
+							ORDERITEMID: item.orderItemId,
+							TYPE: "",
+							PRODUCTID: item.productId,
+							PRODUCTNAME: item.productName,
+							LOCATIONID: item.locationId,
+							DELIVERYMETHOD: deliveryMethod[item.deliveryMethod as String],
+							QUANTITY: item.quantity
+						}
+					}
+				)}
+			}
+		}
+	}
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<sap:execute-transactional-remote-function-call key="ZSDFM_CREATE_SO_HYBRIS" doc:name="Execute BAPI / Function over tRFC" doc:id="417c6c79-c98f-4d41-be72-1d5af443046b" config-ref="SAP_Connection_Config"/>
+		<ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd" doc:id="738dc2d9-f35f-4b6b-8f76-6c19b45e744d">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  id: payload.ZSDFM_CREATE_SO_HYBRIS."export".EV_SO_ID
+}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+    </flow>
+	<flow name="get:\order\(id):order-api-spec-config">
+		<ee:transform doc:name="Build BAPI Request" doc:id="bd8117a5-a518-48a8-a39f-e7d2aef6a289">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/xml
+---
+{
+	ZSDFM_READ_SO_HYBRIS: {
+		"import": {
+			IV_S_ORDER_ID: attributes.uriParams.id
+		}
+	}
+}
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<sap:execute-transactional-remote-function-call doc:name="Retrieve Order from SAP" doc:id="8c4616cc-988b-4e7a-9058-dfc0a70d7612" config-ref="SAP_Connection_Config" key="ZSDFM_READ_SO_HYBRIS" />
+		<ee:transform doc:name="Build Response" doc:id="bc092b0e-6ae5-4c1d-a813-64c0e3b8fb84">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+
+var deliveryMethod = {
+	PI: "PICKUP",
+	SH: "SHIPMENT"
+}
+var status = {
+	D: "Draft",
+	C: "Completed",
+	P: "Processing"
+}
+var header = payload.ZSDFM_READ_SO_HYBRIS."export"
+---
+{
+	orderId: header.ES_SO_HEAD.ORDERID,
+	price: header.EV_SO_PRICE,
+	status: status[header.ES_SO_HEAD.STATUS as String] default "UNKNOWN",
+	trackingNumber: header.ES_SO_HEAD.TRACKINGNUMB,
+	customerId: header.ES_SO_HEAD.CUSTOMERID,
+	orderItems:payload.ZSDFM_READ_SO_HYBRIS.tables.ET_SO_ITEM.*row map (row, i) -> {
+		deliveryMethod: deliveryMethod[row.DELIVERYMETHOD] default "",
+		locationId: row.LOCATIONID,
+		orderLine: row.ORDERITEMID,
+		product: {
+			id: row.PRODUCTID,
+			name: row.PRODUCTNAME
+		},
+		quantity: {
+			ordered: row.QUANTITY
+		}
+	}
+}
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+    </flow>
+	<flow name="put:\order\(id):application\json:order-api-spec-config">
+        <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core">
+            <ee:variables>
+                <ee:set-variable variableName="id">attributes.uriParams.id</ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+        <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  severity: "INFO",
+  code: "202",
+  description: "Request accepted"
+}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+    </flow>
+	<flow name="delete:\order\(id):order-api-spec-config">
+        <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core">
+            <ee:variables>
+                <ee:set-variable variableName="id">attributes.uriParams.id</ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+        <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  severity: "INFO",
+  code: "202",
+  description: "Request accepted"
+}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+    </flow>
+</mule>

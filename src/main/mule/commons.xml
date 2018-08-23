@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:secure-properties="http://www.mulesoft.org/schema/mule/secure-properties" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/secure-properties http://www.mulesoft.org/schema/mule/secure-properties/current/mule-secure-properties.xsd">
+
+	<global-property doc:name="Global Property" doc:id="1c962f57-fa97-436f-92b7-f1373041c1e4" name="env" value="dev" />
+	<global-property doc:name="Global Property" doc:id="f8c7c5e5-10d8-4b3c-95b2-c1d5e24afbea" name="key" value="Mule1379" />
+	<configuration-properties doc:name="Configuration properties" doc:id="9eb8a225-0b39-4dd5-972d-3c2c4c6a8a95" file="order.sap.${env}.yaml" />
+	<secure-properties:config name="Secure_Properties_Config" doc:name="Secure Properties Config" doc:id="0b1f0d71-ea48-43aa-808d-586cd27f6586" file="order.sap.${env}.secured.yaml" key="${key}" >
+		<secure-properties:encrypt algorithm="Blowfish" />
+	</secure-properties:config>
+	<flow name="toSapId" doc:id="67c18bb9-7c63-4f2a-95fc-5679df855a8f" >
+		<ee:transform doc:name="Get SAP ID" doc:id="af03f5a4-5cc2-4f81-bdab-aa322c0b3599" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+"0000000000010"]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="fromSapId" doc:id="22c3ed07-8ab1-46b1-8d39-7e4f06d67c06" >
+		<ee:transform doc:name="Get Global ID" doc:id="a3963217-1221-4041-b302-94580fcb2d8b" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+{
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+</mule>
