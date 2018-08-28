@@ -1,6 +1,6 @@
 #%RAML 1.0
 title: Order API Spec
-baseUri: https://mocksvc.mulesoft.com/mocks/7dda73a9-0b4c-4682-bc67-154f8ea1750b/{version} # baseUri: http://localhost/{version}
+baseUri: https://mocksvc.mulesoft.com/mocks/121e0711-4f87-44c3-b3e0-75afa2d341c0/{version} # baseUri: https://mocksvc.mulesoft.com/mocks/4f640aaa-d760-44dc-9447-926a1282177b/{version} # baseUri: http://localhost/{version}
 version: v1
 mediaType: [application/json, application/xml]
 securedBy: [passthrough]
@@ -13,12 +13,11 @@ uses:
   order: /exchange_modules/66234019-5a31-4239-ba28-4e6d70f0468a/order-library/1.0.18/order-library.raml
   collectionRT: /exchange_modules/5dfb47dc-12e3-4cac-afc5-a00be32d15d8/collection-library/1.0.24/collection-library.raml
 
-/order:
+/orders:
   type:  
     collectionRT.collection:
       mediaType: application/json
   get:
-    description: Since the traits were defined above, they can be referenced here
     queryParameters: 
       orderId?: 
         minLength: 3
@@ -30,9 +29,7 @@ uses:
         minLength: 3
       startDate?: date-only
       endDate?: date-only
-          
   post:
-
   /{id}:
     type: 
       collectionRT.member:

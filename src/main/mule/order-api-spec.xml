@@ -129,7 +129,7 @@ output application/json
             </on-error-propagate>
         </error-handler>
     </flow>
-    <flow name="get:\order:order-api-spec-config">
+    <flow name="get:\orders:order-api-spec-config">
 		<ee:transform doc:name="Transform Message" doc:id="a711e7b5-7033-466d-85a7-386497800bc4" >
 			<ee:message >
 				<ee:set-payload ><![CDATA[%dw 2.0
@@ -146,7 +146,7 @@ output application/json
 			</ee:message>
 		</ee:transform>
     </flow>
-	<flow name="post:\order:application\json:order-api-spec-config">
+	<flow name="post:\orders:application\json:order-api-spec-config">
 		<ee:transform doc:name="Transform Message" doc:id="37b95963-196c-42c7-9c20-7df9e12b9d04" >
 			<ee:message >
 				<ee:set-payload ><![CDATA[%dw 2.0
@@ -205,7 +205,7 @@ output application/json
             </ee:message>
         </ee:transform>
     </flow>
-	<flow name="get:\order\(id):order-api-spec-config">
+	<flow name="get:\orders\(id):order-api-spec-config">
 		<ee:transform doc:name="Build BAPI Request" doc:id="bd8117a5-a518-48a8-a39f-e7d2aef6a289">
 			<ee:message>
 				<ee:set-payload><![CDATA[%dw 2.0
@@ -261,7 +261,7 @@ var header = payload.ZSDFM_READ_SO_HYBRIS."export"
 			</ee:message>
 		</ee:transform>
     </flow>
-	<flow name="put:\order\(id):application\json:order-api-spec-config">
+	<flow name="put:\orders\(id):application\json:order-api-spec-config">
         <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" doc:id="99d62031-76eb-4d61-8697-87622fa9419b">
             <ee:variables>
                 <ee:set-variable variableName="id"><![CDATA[%dw 2.0
