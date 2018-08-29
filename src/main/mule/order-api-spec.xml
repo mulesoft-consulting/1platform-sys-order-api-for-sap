@@ -151,49 +151,54 @@ output application/json
 			<ee:message >
 				<ee:set-payload ><![CDATA[%dw 2.0
 output application/xml
-/*
 var orderType = {
 	pickupItems: "PII",
 	shipmentItems: "SHI",
 	partnersItems: "PAI"
 }
-*/
 var deliveryMethod = {
 	PICKUP: "PI",
 	SHIPMENT: "SH"
 }
 var status = {
-	Draft: "D",
-	Completed: "C",
-	Processing: "P"
+	"Draft": "D",
+	"Completed": "C",
+	"Processing": "P"
 }
 ---
 {
 	ZSDFM_CREATE_SO_HYBRIS: {
 		"import": {
 			IS_SALES_ORDER: {
-				CUSTOMERID: payload.customerId,
-				STATUS: status[payload.status as String] default "",
+				CUSTOMERID: payload[0].customerId,
+				STATUS: status[payload[0].status as String] default "",
 				ITEMS: {(
-					payload.orderItems map (item, i) -> {
+					payload[0].orderItems map (item, i) -> {
 						row: {
 							ORDERITEMID: item.orderItemId,
-							TYPE: "",
+							TYPE: "SHI",
 							PRODUCTID: item.productId,
 							PRODUCTNAME: item.productName,
 							LOCATIONID: item.locationId,
 							DELIVERYMETHOD: deliveryMethod[item.deliveryMethod as String],
-							QUANTITY: item.quantity
+							QUANTITY: item.quantity.ordered
 						}
 					}
 				)}
 			}
 		}
+,
+export: {
+	EV_SO_CREATED: null
+},
+export: {
+	EV_SO_CREATED: null
+}
 	}
 }]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
-		<sap:execute-transactional-remote-function-call key="ZSDFM_CREATE_SO_HYBRIS" doc:name="Create Order in SAP" doc:id="417c6c79-c98f-4d41-be72-1d5af443046b" config-ref="SAP_Connection_Config"/>
+		<sap:execute-synchronous-remote-function-call doc:name="Create Order in SAP" doc:id="f08a1e8f-396b-41a8-ad77-6bb32d53b705" config-ref="SAP_Connection_Config" key="ZSDFM_CREATE_SO_HYBRIS"/>
 		<ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd" doc:id="738dc2d9-f35f-4b6b-8f76-6c19b45e744d">
             <ee:message>
                 <ee:set-payload><![CDATA[%dw 2.0
@@ -221,7 +226,7 @@ output application/xml
 ]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
-		<sap:execute-transactional-remote-function-call doc:name="Retrieve Order from SAP" doc:id="8c4616cc-988b-4e7a-9058-dfc0a70d7612" config-ref="SAP_Connection_Config" key="ZSDFM_READ_SO_HYBRIS" />
+		<sap:execute-synchronous-remote-function-call doc:name="Retrieve Order from SAP" doc:id="bff31c92-ba95-487e-96b1-b814d5c3b1e9" config-ref="SAP_Connection_Config" key="ZSDFM_READ_SO_HYBRIS"/>
 		<ee:transform doc:name="Build Response" doc:id="bc092b0e-6ae5-4c1d-a813-64c0e3b8fb84">
 			<ee:message>
 				<ee:set-payload><![CDATA[%dw 2.0
@@ -243,9 +248,8 @@ var header = payload.ZSDFM_READ_SO_HYBRIS."export"
 	price: header.EV_SO_PRICE,
 	status: status[header.ES_SO_HEAD.STATUS as String] default "UNKNOWN",
 	trackingNumber: header.ES_SO_HEAD.TRACKINGNUMB,
-	customerId: header.ES_SO_HEAD.CUSTOMERID/*,
+	customerId: header.ES_SO_HEAD.CUSTOMERID,
 	orderItems:payload.ZSDFM_READ_SO_HYBRIS.tables.ET_SO_ITEM.*row map (row, i) -> {
-		deliveryMethod: deliveryMethod[row.DELIVERYMETHOD] default "",
 		locationId: row.LOCATIONID,
 		orderLine: row.ORDERITEMID,
 		product: {
@@ -254,8 +258,9 @@ var header = payload.ZSDFM_READ_SO_HYBRIS."export"
 		},
 		quantity: {
 			ordered: row.QUANTITY
-		}
-	}*/
+		}, 
+		deliveryMethod: deliveryMethod[row.DELIVERYMETHOD as String] default "",
+	}
 }
 ]]></ee:set-payload>
 			</ee:message>
@@ -263,53 +268,29 @@ var header = payload.ZSDFM_READ_SO_HYBRIS."export"
     </flow>
 	<flow name="put:\orders\(id):application\json:order-api-spec-config">
         <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" doc:id="99d62031-76eb-4d61-8697-87622fa9419b">
-            <ee:variables>
-                <ee:set-variable variableName="id"><![CDATA[%dw 2.0
+            <ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
 output application/xml
-/*
-var orderType = {
-	pickupItems: "PII",
-	shipmentItems: "SHI",
-	partnersItems: "PAI"
-}
-*/
-var deliveryMethod = {
-	PICKUP: "PI",
-	SHIPMENT: "SH"
-}
 var status = {
 	Draft: "D",
 	Completed: "C",
 	Processing: "P"
 }
 ---
-{
-	ZSDFM_CREATE_SO_HYBRIS: {
+ZSDFM_UPDATE_SO_HYBRIS: {
 		"import": {
-			IV_S_ORDER_ID: attributes.uriParams.id,
 			IS_SALES_ORDER: {
-				CUSTOMERID: payload.customerId,
-				STATUS: status[payload.status as String] default "",
-				ITEMS: {(
-					payload.orderItems map (item, i) -> {
-						row: {
-							ORDERITEMID: item.orderItemId,
-							TYPE: "",
-							PRODUCTID: item.productId,
-							PRODUCTNAME: item.productName,
-							LOCATIONID: item.locationId,
-							DELIVERYMETHOD: deliveryMethod[item.deliveryMethod as String],
-							QUANTITY: item.quantity
-						}
-					}
-				)}
-			}
+				STATUS: status[payload.status as String]
+			},
+			IV_S_ORDER_ID: attributes.uriParams.id
 		}
 	}
-}]]></ee:set-variable>
-            </ee:variables>
+
+
+]]></ee:set-payload>
+			</ee:message>
         </ee:transform>
-        <sap:execute-transactional-remote-function-call doc:name="Update order in SAP" doc:id="c684eebf-b6a3-45a6-9d7f-78119a01b4af" config-ref="SAP_Connection_Config" key="ZSDFM_UPDATE_SO_HYBRIS"/>
+        <sap:execute-synchronous-remote-function-call doc:name="Update order in SAP" doc:id="42900298-db68-4c64-bfc7-d85766bb56f5" config-ref="SAP_Connection_Config" key="ZSDFM_UPDATE_SO_HYBRIS"/>
 		<ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd" doc:id="9684e2af-ea13-4194-8c19-ebebc39fa673">
             <ee:message>
                 <ee:set-payload><![CDATA[%dw 2.0
@@ -327,23 +308,9 @@ var status = {
 var header = payload.ZSDFM_UPDATE_SO_HYBRIS."export"
 ---
 {
-	orderId: header.ES_SO_HEAD.ORDERID,
-	price: header.EV_SO_PRICE,
-	status: status[header.ES_SO_HEAD.STATUS as String] default "UNKNOWN",
-	trackingNumber: header.ES_SO_HEAD.TRACKINGNUMB,
-	customerId: header.ES_SO_HEAD.CUSTOMERID /*,
-	orderItems:payload.ZSDFM_READ_SO_HYBRIS.tables.ET_SO_ITEM.*row map (row, i) -> {
-		deliveryMethod: deliveryMethod[row.DELIVERYMETHOD] default "",
-		locationId: row.LOCATIONID,
-		orderLine: row.ORDERITEMID,
-		product: {
-			id: row.PRODUCTID,
-			name: row.PRODUCTNAME
-		},
-		quantity: {
-			ordered: row.QUANTITY
-		}
-	}*/
+	EV_MESSAGE: header.EV_MESSAGE,
+	EV_SO_NOT_UPDATED: header.EV_SO_NOT_UPDATED,
+	EV_SO_UPDATED: header.EV_SO_UPDATED
 }
 ]]></ee:set-payload>
             </ee:message>
@@ -362,10 +329,10 @@ var header = payload.ZSDFM_UPDATE_SO_HYBRIS."export"
 			</otherwise>
 		</choice>
     </flow>
-	<flow name="delete:\order\(id):order-api-spec-config">
+	<flow name="delete:\orders\(id):order-api-spec-config">
         <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" doc:id="b4c6746a-6db6-4600-ab20-b0e43d086abf">
-            <ee:variables>
-                <ee:set-variable variableName="id"><![CDATA[%dw 2.0
+            <ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
 output application/xml
 ---
 {
@@ -374,11 +341,10 @@ output application/xml
 			IV_S_ORDER_ID: attributes.uriParams.id
 		}
 	}
-}
-]]></ee:set-variable>
-            </ee:variables>
-        </ee:transform>
-        <sap:execute-transactional-remote-function-call key="ZSDFM_DELETE_SO_HYBRIS" doc:name="Execute BAPI / Function over tRFC" doc:id="a139d8d6-6681-40b2-b292-e8bc66b50d0e" config-ref="SAP_Connection_Config"/>
+}]]></ee:set-payload>
+			</ee:message>
+</ee:transform>
+        <sap:execute-synchronous-remote-function-call doc:name="Delete order from SAP" doc:id="b4d9b9f4-a3af-44f5-8a26-7103e041d1e6" config-ref="SAP_Connection_Config" key="ZSDFM_DELETE_SO_HYBRIS"/>
 		<ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd" doc:id="7c8999d1-4d7d-4fa2-85a9-65b6d6e333c2">
             <ee:message>
                 <ee:set-payload><![CDATA[%dw 2.0
