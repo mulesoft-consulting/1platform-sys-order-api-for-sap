@@ -1,0 +1,5 @@
+sap:
+  host: "sapprod.tools.mulesoft.com"
+  sysnr: "00"
+  client: "800"
+  lang: "EN"

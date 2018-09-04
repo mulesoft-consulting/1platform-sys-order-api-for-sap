@@ -1,9 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<mule xmlns:sap="http://www.mulesoft.org/schema/mule/sap" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd 
+<mule xmlns:tls="http://www.mulesoft.org/schema/mule/tls"
+	xmlns:sap="http://www.mulesoft.org/schema/mule/sap" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd 
 http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
 http://www.mulesoft.org/schema/mule/sap http://www.mulesoft.org/schema/mule/sap/current/mule-sap.xsd">
+
     <http:listener-config name="order-api-spec-httpListenerConfig">
-        <http:listener-connection host="0.0.0.0" port="8081" />
+        <http:listener-connection host="0.0.0.0" port="8082" protocol="HTTPS">
+            <tls:context>
+                <tls:key-store type="jks" path="keystore.jks" keyPassword="${secure::keystore.password}" password="${secure::keystore.password}" />
+            </tls:context>
+        </http:listener-connection>
     </http:listener-config>
 	<sap:outbound-config name="SAP_Connection_Config" doc:name="SAP Outbound" doc:id="c6fd996d-e83a-4496-ae33-726f86db3869" logTraceFlag="true">
 		<sap:simple-connection-provider-connection applicationServerHost="${sap.host}" username="${secure::sap.user}" password="${secure::sap.pass}" systemNumber="${sap.sysnr}" client="${sap.client}" language="${sap.lang}" traceFromServerFlag="true"/>
@@ -384,7 +390,9 @@ output application/xml
 			</ee:message>
 </ee:transform>
         <sap:execute-synchronous-remote-function-call doc:name="Delete order from SAP" doc:id="b4d9b9f4-a3af-44f5-8a26-7103e041d1e6" config-ref="SAP_Connection_Config" key="ZSDFM_DELETE_SO_HYBRIS"/>
-		<ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd" doc:id="7c8999d1-4d7d-4fa2-85a9-65b6d6e333c2">
+		<ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/tls http://www.mulesoft.org/schema/mule/tls/current/mule-tls.xsd 
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd" doc:id="7c8999d1-4d7d-4fa2-85a9-65b6d6e333c2">
             <ee:message>
                 <ee:set-payload><![CDATA[%dw 2.0
 output application/json
