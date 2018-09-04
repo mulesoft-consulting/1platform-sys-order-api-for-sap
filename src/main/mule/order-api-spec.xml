@@ -294,6 +294,7 @@ var header = payload.ZSDFM_READ_SO_HYBRIS."export"
 	status: status[header.ES_SO_HEAD.STATUS as String] default "UNKNOWN",
 	trackingNumber: header.ES_SO_HEAD.TRACKINGNUMB,
 	customerId: header.ES_SO_HEAD.CUSTOMERID,
+	sourceSystem: "SAP",
 	orderItems:payload.ZSDFM_READ_SO_HYBRIS.tables.ET_SO_ITEM.*row map (row, i) -> {
 		locationId: row.LOCATIONID,
 		orderLine: row.ORDERITEMID,

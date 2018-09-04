@@ -82,6 +82,8 @@
 			<version>4.1.0</version>
 			<classifier>mule-plugin</classifier>
 		</dependency>
+		<!-- Install deps using installMavenDeps.sh script from 
+			https://github.com/mulesoft-consulting/sap-libs-internal -->
 		<dependency>
 			<groupId>com.sap.conn.jco</groupId>
 			<artifactId>com.sap.conn.jco.sapjco3</artifactId>
@@ -98,11 +100,11 @@
 			<version>3.0.17</version>
 			<classifier>external-library</classifier>
 			<!-- for Mac -->
-			<type>jnilib</type>
+<!-- 			<type>jnilib</type> -->
 			<!-- for Windows -->
 			<!-- <type>dll</type> -->
 			<!-- for Linux/CloudHub -->
-			<!-- <type>so</type> -->
+			<type>so</type>
 		</dependency>
     </dependencies>
 
