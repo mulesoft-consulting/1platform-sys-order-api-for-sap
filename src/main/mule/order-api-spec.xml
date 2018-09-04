@@ -5,8 +5,8 @@ http://www.mulesoft.org/schema/mule/sap http://www.mulesoft.org/schema/mule/sap/
     <http:listener-config name="order-api-spec-httpListenerConfig">
         <http:listener-connection host="0.0.0.0" port="8081" />
     </http:listener-config>
-	<sap:outbound-config name="SAP_Connection_Config" doc:name="SAP Outbound" doc:id="c6fd996d-e83a-4496-ae33-726f86db3869" >
-		<sap:simple-connection-provider-connection applicationServerHost="${sap.host}" username="${secure::sap.user}" password="${secure::sap.pass}" systemNumber="${sap.sysnr}" client="${sap.client}" language="${sap.lang}" />
+	<sap:outbound-config name="SAP_Connection_Config" doc:name="SAP Outbound" doc:id="c6fd996d-e83a-4496-ae33-726f86db3869" logTraceFlag="true">
+		<sap:simple-connection-provider-connection applicationServerHost="${sap.host}" username="${secure::sap.user}" password="${secure::sap.pass}" systemNumber="${sap.sysnr}" client="${sap.client}" language="${sap.lang}" traceFromServerFlag="true"/>
 	</sap:outbound-config>
 	
     <apikit:config name="order-api-spec-config" raml="order-api-spec.raml" outboundHeadersMapName="outboundHeaders" httpStatusVarName="httpStatus" />
@@ -130,19 +130,65 @@ output application/json
         </error-handler>
     </flow>
     <flow name="get:\orders:order-api-spec-config">
-		<ee:transform doc:name="Transform Message" doc:id="a711e7b5-7033-466d-85a7-386497800bc4" >
+		<ee:transform doc:name="Transform Message" doc:id="958475d5-c132-45a4-8155-fa357c9d7d4a">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/xml
+---
+{
+	ZSDFM_QUERY_SO_HYBRIS: {
+		"import": {
+			IV_CUSTOMERID: attributes.queryParams.customerId
+		}
+	}
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<sap:execute-synchronous-remote-function-call key="ZSDFM_QUERY_SO_HYBRIS" doc:name="Execute BAPI / Function over sRFC" doc:id="fdc4abb7-1e0b-408e-93da-ff8878d72040" config-ref="SAP_Connection_Config"/>
+		<ee:transform doc:name="Transform Message" doc:id="1fb17f08-9656-4369-9989-4711315533d5" >
 			<ee:message >
 				<ee:set-payload ><![CDATA[%dw 2.0
+%dw 2.0
 output application/json
+var deliveryMethod = {
+	PI: "PICKUP",
+	SH: "SHIPMENT"
+}
+var status = {
+	D: "Draft",
+	C: "Completed",
+	P: "Processing"
+}
+var header = payload.ZSDFM_READ_SO_HYBRIS."export"
 ---
-[{
+{
 	meta: {
-		messages: [{
-			code: "501",
-			description: "Method not implemented for this resource"
-		}]
+		totalItems: sizeOf(payload.ZSDFM_QUERY_SO_HYBRIS.tables.ET_SO_HEAD.*row default []),
+		pagingOffset: 0
+	},
+	orders: payload.ZSDFM_QUERY_SO_HYBRIS.tables.ET_SO_HEAD.*row map ( header , i ) -> {
+		orderId: header.ORDERID,
+		price: header.SO_PRICE,
+		status: status[header.STATUS as String] default "UNKNOWN",
+		trackingNumber: header.TRACKINGNUMB,
+		customerId: header.CUSTOMERID,
+		sourceSystem: "SAP",
+		orderItems: payload.ZSDFM_QUERY_SO_HYBRIS.tables.ET_SO_ITEMS.*row 
+				filter ($.S_ORDER_ID == header.ORDERID) 
+				map (row, j) -> {
+			locationId: row.LOCATION_ID,
+			orderLine: j,
+			product: {
+				id: row.PRODUCT
+			},
+			quantity: {
+				ordered: row.QUANTITY,
+				shipped: row.QUANTITY
+			},
+			deliveryMethod: deliveryMethod[row.DELIVERMETHOD as String] default ""
+		}
 	}
-}]]]></ee:set-payload>
+}]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
     </flow>
@@ -187,13 +233,6 @@ var status = {
 				)}
 			}
 		}
-,
-export: {
-	EV_SO_CREATED: null
-},
-export: {
-	EV_SO_CREATED: null
-}
 	}
 }]]></ee:set-payload>
 			</ee:message>

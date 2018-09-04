@@ -38,10 +38,6 @@
 							<groupId>com.sap.conn.jco</groupId>
 							<artifactId>com.sap.conn.jco.libsapjco3</artifactId>
 						</sharedLibrary>
-					<sharedLibrary>
-                            <groupId>com.mycompany</groupId>
-                            <artifactId>com.sap.conn.jco.libsapjco3-3.0.17-external-library</artifactId>
-                        </sharedLibrary>
                     </sharedLibraries>
 				<classifier>mule-application</classifier>
                 </configuration>
@@ -108,12 +104,6 @@
 			<!-- for Linux/CloudHub -->
 			<!-- <type>so</type> -->
 		</dependency>
-		<dependency>
-            <groupId>com.mycompany</groupId>
-            <artifactId>com.sap.conn.jco.libsapjco3-3.0.17-external-library</artifactId>
-            <version>0.1</version>
-            <type>jnilib</type>
-        </dependency>
     </dependencies>
 
 	<repositories>
