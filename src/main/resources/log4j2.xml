@@ -27,6 +27,8 @@
         <AsyncLogger name="org.mule" level="INFO"/>
         <AsyncLogger name="com.mulesoft" level="INFO"/>
  
+ 		<AsyncLogger name="sys.order.api" level="DEBUG"/>
+ 
         <AsyncRoot level="INFO">
             <AppenderRef ref="file" />
         </AsyncRoot>

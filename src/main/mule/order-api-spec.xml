@@ -150,15 +150,18 @@ output application/xml
 }]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
-		<sap:execute-synchronous-remote-function-call key="ZSDFM_QUERY_SO_HYBRIS" doc:name="Execute BAPI / Function over sRFC" doc:id="fdc4abb7-1e0b-408e-93da-ff8878d72040" config-ref="SAP_Connection_Config"/>
-		<ee:transform doc:name="Transform Message" doc:id="1fb17f08-9656-4369-9989-4711315533d5" >
-			<ee:message >
-				<ee:set-payload ><![CDATA[%dw 2.0
+		<try doc:name="Try" doc:id="e6db6287-8cc7-42b5-9db2-b44c04f79271" >
+			<sap:execute-synchronous-remote-function-call key="ZSDFM_QUERY_SO_HYBRIS" doc:name="Execute BAPI / Function over sRFC" doc:id="fdc4abb7-1e0b-408e-93da-ff8878d72040" config-ref="SAP_Connection_Config" >
+				<error-mapping sourceType="SAP:EXECUTION_ERROR" targetType="APP:NO_ORDERS" />
+			</sap:execute-synchronous-remote-function-call>
+			<ee:transform doc:name="Transform Message" doc:id="1fb17f08-9656-4369-9989-4711315533d5">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
 %dw 2.0
 output application/json
 var deliveryMethod = {
-	PI: "PICKUP",
-	SH: "SHIPMENT"
+	PI: "Pickup",
+	SH: "Shipment"
 }
 var status = {
 	D: "Draft",
@@ -191,12 +194,36 @@ var header = payload.ZSDFM_READ_SO_HYBRIS."export"
 				ordered: row.QUANTITY,
 				shipped: row.QUANTITY
 			},
-			deliveryMethod: deliveryMethod[row.DELIVERMETHOD as String] default ""
+			delivery: {
+				method: deliveryMethod[row.DELIVERMETHOD as String] default "Shipment"
+			}
 		}
 	}
 }]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
+			<error-handler >
+				<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="2b0bb95d-0ff3-4137-900f-ba85d3029975" >
+					<ee:transform doc:name="Build Error Response" doc:id="f8eebd48-23ac-4b3c-a139-986a260d13bb" >
+						<ee:message >
+							<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	meta: {
+		totalItems: 0,
+		pagingOffset: 0
+	},
+	orders: []
+}
+	]]></ee:set-payload>
+						</ee:message>
+						<ee:variables >
+						</ee:variables>
+					</ee:transform>
+				</on-error-continue>
+			</error-handler>
+		</try>
     </flow>
 	<flow name="post:\orders:application\json:order-api-spec-config">
 		<ee:transform doc:name="Transform Message" doc:id="37b95963-196c-42c7-9c20-7df9e12b9d04" >
@@ -209,9 +236,10 @@ var orderType = {
 	partnersItems: "PAI"
 }
 var deliveryMethod = {
-	PICKUP: "PI",
-	SHIPMENT: "SH"
+	Pickup: "PI",
+	Shipment: "SH"
 }
+
 var status = {
 	"Draft": "D",
 	"Completed": "C",
@@ -227,12 +255,12 @@ var status = {
 				ITEMS: {(
 					payload[0].orderItems map (item, i) -> {
 						row: {
-							ORDERITEMID: item.orderItemId,
+							ORDERITEMID: i,
 							TYPE: "SHI",
-							PRODUCTID: item.productId,
-							PRODUCTNAME: item.productName,
-							LOCATIONID: item.locationId,
-							DELIVERYMETHOD: deliveryMethod[item.deliveryMethod as String],
+							PRODUCTID: item.product.id,
+							PRODUCTNAME: item.product.name,
+							LOCATIONID: item.location.id,
+							DELIVERYMETHOD: deliveryMethod[item.delivery.method as String] default "SH",
 							QUANTITY: item.quantity.ordered
 						}
 					}
@@ -243,15 +271,26 @@ var status = {
 }]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
+		<logger level="DEBUG" doc:name="Log SAP request" doc:id="f38d912f-1a62-4684-8757-c7a37554a4df" message='#["Creating order " ++ write(payload, "application/xml")]' category="sys.order.api"/>
 		<sap:execute-synchronous-remote-function-call doc:name="Create Order in SAP" doc:id="f08a1e8f-396b-41a8-ad77-6bb32d53b705" config-ref="SAP_Connection_Config" key="ZSDFM_CREATE_SO_HYBRIS"/>
 		<ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd" doc:id="738dc2d9-f35f-4b6b-8f76-6c19b45e744d">
             <ee:message>
                 <ee:set-payload><![CDATA[%dw 2.0
 output application/json
 ---
-[{
-  id: payload.ZSDFM_CREATE_SO_HYBRIS."export".EV_SO_ID
-}]]]></ee:set-payload>
+{
+	meta: {
+		totalItems: sizeOf(vars.messages)
+	},
+	messages: [
+		{
+			"itemId": payload.ZSDFM_CREATE_SO_HYBRIS."export".EV_SO_ID,
+			"severity": "INFO",
+			"code": "201",
+			"description": "order record created"
+		}
+	]
+}]]></ee:set-payload>
             </ee:message>
         </ee:transform>
     </flow>
@@ -271,16 +310,20 @@ output application/xml
 ]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
-		<sap:execute-synchronous-remote-function-call doc:name="Retrieve Order from SAP" doc:id="bff31c92-ba95-487e-96b1-b814d5c3b1e9" config-ref="SAP_Connection_Config" key="ZSDFM_READ_SO_HYBRIS"/>
-		<ee:transform doc:name="Build Response" doc:id="bc092b0e-6ae5-4c1d-a813-64c0e3b8fb84">
+		<try doc:name="Try" doc:id="1c7f4456-b3b7-479c-9705-c5e0f0731a41" >
+			<sap:execute-synchronous-remote-function-call doc:name="Retrieve Order from SAP" doc:id="bff31c92-ba95-487e-96b1-b814d5c3b1e9" config-ref="SAP_Connection_Config" key="ZSDFM_READ_SO_HYBRIS">
+			<error-mapping sourceType="SAP:EXECUTION_ERROR" targetType="APP:ORDER_DOES_NOT_EXIST" />
+		</sap:execute-synchronous-remote-function-call>
+			<ee:transform doc:name="Build Response" doc:id="bc092b0e-6ae5-4c1d-a813-64c0e3b8fb84">
 			<ee:message>
 				<ee:set-payload><![CDATA[%dw 2.0
 output application/json
 
 var deliveryMethod = {
-	PI: "PICKUP",
-	SH: "SHIPMENT"
+	PI: "Pickup",
+	SH: "Shipment"
 }
+
 var status = {
 	D: "Draft",
 	C: "Completed",
@@ -304,13 +347,36 @@ var header = payload.ZSDFM_READ_SO_HYBRIS."export"
 		},
 		quantity: {
 			ordered: row.QUANTITY
-		}, 
-		deliveryMethod: deliveryMethod[row.DELIVERYMETHOD as String] default "",
+		},
+		delivery: {
+			method: deliveryMethod[row.DELIVERMETHOD as String] default "Shipment"
+		}
 	}
 }
 ]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
+			<error-handler >
+				<on-error-continue enableNotifications="false" logException="false" doc:name="On Error Continue" doc:id="de19f725-62d6-406d-9fdf-7bf6844162c6" type="APP:ORDER_DOES_NOT_EXIST">
+					<ee:transform doc:name="Build Error Response" doc:id="7c308a42-4452-4de2-97d7-9649d547fa6f" >
+						<ee:message >
+							<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"message": "resource not found"
+}]]></ee:set-payload>
+						</ee:message>
+						<ee:variables >
+							<ee:set-variable variableName="httpStatus" ><![CDATA[%dw 2.0
+output application/java
+---
+400]]></ee:set-variable>
+						</ee:variables>
+					</ee:transform>
+				</on-error-continue>
+			</error-handler>
+		</try>
     </flow>
 	<flow name="put:\orders\(id):application\json:order-api-spec-config">
         <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" doc:id="99d62031-76eb-4d61-8697-87622fa9419b">

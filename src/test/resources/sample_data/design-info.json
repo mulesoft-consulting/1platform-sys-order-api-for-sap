@@ -2,6 +2,9 @@
   "sampleData": {
     "1fb17f08-9656-4369-9989-4711315533d5": {
       "payload": "sample_data/ZSDFM_QUERY_SO_HYBRIS.xml"
+    },
+    "37b95963-196c-42c7-9c20-7df9e12b9d04": {
+      "payload": "sample_data/list_json.json"
     }
   }
 }

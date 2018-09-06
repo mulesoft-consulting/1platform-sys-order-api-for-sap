@@ -1,4 +1,4 @@
 {
   "secureProperties": ["key", "sap.user", "sap.pass", "keystore.password"],
-  "minMuleVersion":"4.1.3"
+  "minMuleVersion":"4.1.2"
 }
