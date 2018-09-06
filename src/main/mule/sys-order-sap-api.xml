@@ -280,7 +280,7 @@ output application/json
 ---
 {
 	meta: {
-		totalItems: sizeOf(vars.messages)
+		totalItems: 1
 	},
 	messages: [
 		{
@@ -292,7 +292,39 @@ output application/json
 	]
 }]]></ee:set-payload>
             </ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="httpStatus" ><![CDATA[%dw 2.0
+output application/java
+---
+201]]></ee:set-variable>
+			</ee:variables>
         </ee:transform>
+		<error-handler >
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="144d97df-4698-41bf-a45e-0deffdbd8226" >
+				<ee:transform doc:name="Copy_of_Transform Message" doc:id="47c4b237-0704-469d-9807-b92155ae47e3" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	messages: [
+		{
+			"severity": "ERROR",
+			"code": "500",
+			"description": "Unexpected Error"
+		}
+	]
+}]]></ee:set-payload>
+					</ee:message>
+					<ee:variables >
+						<ee:set-variable variableName="httpStatus" ><![CDATA[%dw 2.0
+output application/java
+---
+201]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+			</on-error-propagate>
+		</error-handler>
     </flow>
 	<flow name="get:\orders\(id):order-api-spec-config">
 		<ee:transform doc:name="Build BAPI Request" doc:id="bd8117a5-a518-48a8-a39f-e7d2aef6a289">
