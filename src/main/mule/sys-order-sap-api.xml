@@ -5,9 +5,9 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 http://www.mulesoft.org/schema/mule/sap http://www.mulesoft.org/schema/mule/sap/current/mule-sap.xsd">
 
     <http:listener-config name="order-api-spec-httpListenerConfig">
-        <http:listener-connection host="0.0.0.0" port="8082" protocol="HTTPS">
+        <http:listener-connection host="0.0.0.0" port="${api.port}" protocol="HTTPS">
             <tls:context>
-                <tls:key-store type="jks" path="keystore.jks" keyPassword="${secure::keystore.password}" password="${secure::keystore.password}" />
+                <tls:key-store type="jks" alias="localhost" path="localhost.jks" keyPassword="${secure::keystore.password}" password="${secure::keystore.password}" />
             </tls:context>
         </http:listener-connection>
     </http:listener-config>
@@ -229,7 +229,7 @@ output application/json
 		<ee:transform doc:name="Transform Message" doc:id="37b95963-196c-42c7-9c20-7df9e12b9d04" >
 			<ee:message >
 				<ee:set-payload ><![CDATA[%dw 2.0
-output application/xml
+output application/xml writeDeclaration=false
 var orderType = {
 	pickupItems: "PII",
 	shipmentItems: "SHI",

@@ -103,7 +103,7 @@
 <!-- 			<type>jnilib</type> -->
 			<!-- for Windows -->
 			<!-- <type>dll</type> -->
-			<!-- for Linux/CloudHub -->
+<!-- 			for Linux/CloudHub -->
 			<type>so</type>
 		</dependency>
     </dependencies>
