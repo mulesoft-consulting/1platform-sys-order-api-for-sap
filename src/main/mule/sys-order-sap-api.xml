@@ -396,14 +396,20 @@ var header = payload.ZSDFM_READ_SO_HYBRIS."export"
 output application/json
 ---
 {
-	"message": "resource not found"
+	messages: [
+		{
+			"severity": "ERROR",
+			"code": "404",
+			"description": "Resource Not Found"
+		}
+	]
 }]]></ee:set-payload>
 						</ee:message>
 						<ee:variables >
 							<ee:set-variable variableName="httpStatus" ><![CDATA[%dw 2.0
 output application/java
 ---
-400]]></ee:set-variable>
+404]]></ee:set-variable>
 						</ee:variables>
 					</ee:transform>
 				</on-error-continue>
@@ -461,7 +467,22 @@ var header = payload.ZSDFM_UPDATE_SO_HYBRIS."export"
         </ee:transform>
 		<choice doc:name="Choice" doc:id="cb8fc5d3-09f0-4d25-95f5-2c2db118cc11" >
 			<when expression='#[payload.EV_SO_UPDATED == "X"]' >
-				<set-payload value='{  "message": "Order was updated" }' doc:name="Set Payload" doc:id="2bfd1d29-fd25-42fb-bd2f-28325e850e7a" />
+				<ee:transform doc:name="Transform Message" doc:id="4b3eac03-66fc-45f8-8a94-4e8bf14680b6" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	messages: [
+		{
+			"severity": "INFO",
+			"code": "200",
+			"description": "OK"
+		}
+	]
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
 			</when>
 			<when expression='#[payload.EV_SO_NOT_UPDATED == "X"]' >
 				<set-variable value="400" doc:name="http error status" doc:id="3db7633e-c24a-4277-991f-efc816d36555" variableName="httpStatus"/>
