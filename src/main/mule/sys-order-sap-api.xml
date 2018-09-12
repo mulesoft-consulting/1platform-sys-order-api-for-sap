@@ -177,7 +177,7 @@ var header = payload.ZSDFM_READ_SO_HYBRIS."export"
 	},
 	orders: payload.ZSDFM_QUERY_SO_HYBRIS.tables.ET_SO_HEAD.*row map ( header , i ) -> {
 		orderId: header.ORDERID,
-		price: header.SO_PRICE,
+		totalAmount: header.SO_PRICE,
 		status: status[header.STATUS as String] default "UNKNOWN",
 		trackingNumber: header.TRACKINGNUMB,
 		customerId: header.CUSTOMERID,
