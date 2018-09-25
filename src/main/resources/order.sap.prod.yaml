@@ -1,8 +1,0 @@
-api:
-  id: "15523419"
-  port: "8082"
-sap:
-  host: "sapprod.tools.mulesoft.com"
-  sysnr: "00"
-  client: "800"
-  lang: "EN"
