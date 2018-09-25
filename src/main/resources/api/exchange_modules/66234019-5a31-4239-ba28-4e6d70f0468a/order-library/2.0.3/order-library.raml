@@ -1,0 +1,136 @@
+#%RAML 1.0 Library
+uses: 
+  address: /exchange_modules/5dfb47dc-12e3-4cac-afc5-a00be32d15d8/postal-address-library/1.0.4/postal-address-library.raml
+  payment: /exchange_modules/450b592a-65f1-4c8b-8aba-33d3ae9f2d95/payment-library/1.0.16/payment-library.raml
+  currency: /exchange_modules/5dfb47dc-12e3-4cac-afc5-a00be32d15d8/currency-library/1.0.1/currency-library.raml
+  collection: /exchange_modules/5dfb47dc-12e3-4cac-afc5-a00be32d15d8/collection-library/1.0.30/collection-library.raml
+  links: /exchange_modules/5dfb47dc-12e3-4cac-afc5-a00be32d15d8/hypermedia-library/1.0.4/hypermedia-library.raml
+  common: /exchange_modules/5dfb47dc-12e3-4cac-afc5-a00be32d15d8/common-library/1.0.12/common-library.raml
+
+types:
+  Delivery:
+    properties:
+      type?: 
+        enum: [Pickup, Shipment]
+      date?: 
+        type: date-only
+        example: 2018-08-18
+      itemStatus?: OrderStatus
+      authorizedPeople?: 
+        type: array
+        items: 
+          properties:
+            firstName?: 
+              example: Brett
+            lastName?:
+              example: Roeder
+            phoneNumber?: 
+            email.email?:
+      carrier?: 
+        examples: 
+          UPS: UPS
+          FedEx: FedEx
+          USPS: USPS
+      trackingNumber?: 
+        example: t12334345345
+      amount?: 
+        type: number
+        example: 12.00
+      insuredAmount?: 
+        type: number
+        example: 10.00
+      comments?: 
+        example: Left at front door
+      links?: links.Link
+
+  Discount:
+    properties:
+      program?: 
+      percent?: number
+      amount?: number
+      currencyCode?: currency.Currency
+
+  OrderItem: 
+    description: Information about ordered product (variant)
+    properties: 
+      orderLine: 
+        type: integer
+        example: 1
+      product:
+        properties: 
+          id?: 
+            example: 1234s
+          name?: 
+            example: Play dough
+      location:
+        properties:
+          type?: 
+            description: Store, Warehouse, Direct Shipper, ...
+            example: Store
+          id?: 
+            example: s1
+      sourceSystem?: 
+      deliveries?: Delivery[]
+      quantity:
+        properties: 
+          ordered: integer
+          shipped?: integer
+          backOrdered?: integer
+      pricing:
+        properties: 
+          itemAmount: number
+          discount?: Discount
+          totalAmount: number 
+          discountedAmount: number
+          currency: currency.Currency
+      link?: links.Link
+      created?: common.Modified
+      modified?: common.Modified
+
+  OrderStatus:
+    type: string
+    enum: [Draft, Pending, Processing, Waiting Fulfillment, Completed, Canceled]
+
+  Order:
+    properties: 
+      sourceSystem?:
+      orderId?: 
+      orderDateTime?: datetime
+      status?: OrderStatus
+      trackingNumber?: 
+      customerId?: 
+      contact?:
+        properties:
+          firstName?:
+            example: Brett
+          lastName?: 
+            example: Roeder
+          email?:
+          phone?: 
+      billingAddress?: address.Address
+      deliveryAddress?: address.Address
+      deliveries?: Delivery[]
+      deliveryStatus?: 
+      currency?: currency.Currency
+      subTotal?: number
+      discount?: Discount
+      shippingCost?: number
+      taxAmount?: number
+      totalAmount?: number
+      created?: common.Modified
+      modified?: common.Modified
+      payments?: payment.Payment[]
+      orderItems?: OrderItem[]
+    example: !include examples/member.raml
+
+  OrderCollection:
+    type:  Order[]
+    example: !include examples/collection.raml
+
+  OrderCollectionResponse:
+    type: collection.CollectionResponse
+    properties:
+      orders: 
+        type: Order[]
+        required: false
+    example: !include examples/collectionResponse.raml
