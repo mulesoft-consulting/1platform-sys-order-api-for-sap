@@ -1,0 +1,135 @@
+#%RAML 1.0 NamedExample
+sourceSystem: SAP, Billing DB
+customerId: "10000012"
+orderId: "00007065"
+orderDateTime: 2018-01-06T12:13:15Z
+status: Waiting Fulfillment
+trackingNumber: 1112cd
+contact:
+  firstName: Tim
+  lastName: Witz
+  email: tim@company.com
+  phone: 415-278-9279
+billingAddress:
+  addressId: a1800
+  type: Home
+  addressLines: 
+    - 1800 McAllistor Street
+  city: San Francisco
+  state: CA
+  postalCode: "94115"
+  countryCode: USA
+deliveryAddress: 
+  addressId: a1800
+  type: Home
+  addressLines: 
+    - 1800 McAllistor Street
+  city: San Francisco
+  state: CA
+  postalCode: "94115"
+  countryCode: USA
+deliveries:
+    - type: Shipment
+      date: 2018-08-18
+      itemStatus: Pending
+      authorizedPeople: 
+        - firstName: Tim
+          lastName: Witz
+      carrier: UPS
+      trackingNumber: t12334345345
+      amount: 12.00
+      insuredAmount: 10.00
+      comments: Left at front door
+deliveryStatus: Processing
+currency:
+  code: USD
+subTotal: 100.00
+shippingCost: 20.00
+taxAmount: 6.00
+totalAmount: 126.00
+payments:
+  - transactionId: a123456789
+    dateTime: 2018-08-18T12:13:14Z
+    currency: 
+      code: USD
+    amount: 154.44
+    method: CreditCard
+    paymentInfo:
+      cardType: VISA
+      creditCardNumber: "1234567812345678"
+      cardOwner: Tim Witz
+      expirationDate: 
+        month: 8
+        year: 2018
+      ccv: "874"
+      postalCode: "301683"
+    approved: true
+    additionalInfo: Additional info   
+orderItems: 
+  - orderLine: 1
+    product:
+      id: "1004100"
+      name: Men’s Thunder Jacket
+    location:
+      type: Store
+      id: s1
+    sourceSystem: SAP
+    deliveries:
+    - type: Shipment
+      date: 2018-08-18
+      itemStatus: Pending
+      authorizedPeople: 
+        - firstName: Tim
+          lastName: Witz
+      carrier: UPS
+      trackingNumber: t12334345345
+      amount: 12.00
+      insuredAmount: 10.00
+      comments: Left at front door
+    quantity:
+      ordered: 3
+      shipped: 2
+      backOrdered: 1
+    pricing:
+      itemAmount: 20.00
+      discount: 
+        program: Labor Day sale
+        percent: 75
+      totalAmount:  20.00
+      discountedAmount: 15.00
+      currency:
+        code: USD
+    link: 
+      href: http://localhost
+      title: Link to product
+  - orderLine: 2
+    product:
+      id: "1806100"
+      name: Men’s Single Track II
+    location:
+      type: Store
+      id: s1
+    sourceSystem: Billing DB
+    deliveries:
+      - type: Pickup
+        date: 2018-08-18
+        authorizedPeople:
+          - firstName: Tim
+            lastName: Witz
+            phoneNumber: 415-030-2033
+    quantity:
+      ordered: 4
+      shipped: 4
+      backOrdered: 0
+    pricing:
+      itemAmount: 20.00
+      discount: 
+        program: Back to school
+        amount: 20.00
+      totalAmount:  80.00
+      discountedAmount: 60.00
+      currency:
+        code: USD
+    link: 
+      href: http://localhost
+      title: Link to product

@@ -1,0 +1,77 @@
+#%RAML 1.0 Library
+uses: 
+  currency: /exchange_modules/5dfb47dc-12e3-4cac-afc5-a00be32d15d8/currency-library/1.0.1/currency-library.raml
+  collection: /exchange_modules/5dfb47dc-12e3-4cac-afc5-a00be32d15d8/collection-library/1.0.30/collection-library.raml
+
+types:
+  CreditCard:
+    properties: 
+      cardType: 
+        enum: [ VISA, MasterCard, American Express, Discover ]
+        example: VISA
+      creditCardNumber: 
+        example: "1234567812345678"
+      cardOwner: 
+        example: Brett Roeder
+      expirationDate: 
+        properties: 
+          month: 
+            type: integer
+            minimum: 1
+            maximum: 12
+          year: 
+            type: integer
+            example: 2018
+      ccv:
+        minLength: 3
+        maxLength: 4
+      postalCode: 
+        example: "30183"
+  
+  Account: 
+    properties: 
+      number:
+        example: "1234567891234567"
+      name?: 
+
+  AccountTransfer:
+    properties: 
+      fromAccount?: Account
+      toAccount?: Account
+  
+  Payment:
+    properties:
+      sourceSystem?:
+        example: Salesforce
+      transactionId?: 
+        example: 12345c
+      dateTime?: datetime
+      amount: 
+        type: number
+        example: 154.44
+      currency: currency.Currency
+      method:
+        enum: [CreditCard, Crypto, Paypal, Venmo]
+        default: CreditCard
+        example: CreditCard
+      paymentInfo: [ CreditCard, AccountTransfer ]
+      approved?: 
+        type: boolean
+        example: true
+      additionalInfo?:
+    example:
+      value: !include examples/member.raml
+
+  PaymentCollection:
+    type:  Payment[]
+    example: 
+      value: !include examples/collection.raml
+
+  PaymentCollectionResponse:
+    type: collection.CollectionResponse
+    properties:
+      payments: 
+        type: Payment[]
+        required: false
+    example: 
+      value: !include examples/collectionResponse.raml
