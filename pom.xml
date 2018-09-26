@@ -32,6 +32,9 @@
 		</profile>
 		<profile>
 			<id>Cloudhub</id>
+			<activation>
+            		<activeByDefault>true</activeByDefault>
+        		</activation>
 			<properties>
 				<external_library.type>so</external_library.type>
 			</properties>
