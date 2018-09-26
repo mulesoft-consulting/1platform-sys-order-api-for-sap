@@ -16,7 +16,7 @@ http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/fil
 		<sap:simple-connection-provider-connection applicationServerHost="${sap.host}" username="${sap.user}" password="${sap.pass}" systemNumber="${sap.sysnr}" client="${sap.client}" language="${sap.lang}" traceFromServerFlag="true"/>
 	</sap:outbound-config>
 	
-    <apikit:config name="order-api-spec-config" raml="order-sap-api`.raml" outboundHeadersMapName="outboundHeaders" httpStatusVarName="httpStatus" />
+    <apikit:config name="order-api-spec-config" raml="order-sap-api.raml" outboundHeadersMapName="outboundHeaders" httpStatusVarName="httpStatus" />
 	<flow name="order-api-spec-main">
         <http:listener config-ref="order-api-spec-httpListenerConfig" path="/api/*">
             <http:response statusCode="#[vars.httpStatus default 200]">
