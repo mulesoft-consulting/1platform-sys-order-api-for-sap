@@ -16,7 +16,27 @@
 		<app.runtime>4.1.3</app.runtime>
 		<mule.maven.plugin.version>3.1.6</mule.maven.plugin.version>
 	</properties>
-
+	
+	<profiles>
+		<profile>
+			<id>Mac</id>
+			<properties>
+				<external_library.type>jnilib</external_library.type>
+			</properties>
+		</profile>
+		<profile>
+			<id>Windows</id>
+			<properties>
+				<external_library.type>dll</external_library.type>
+			</properties>
+		</profile>
+		<profile>
+			<id>Cloudhub</id>
+			<properties>
+				<external_library.type>so</external_library.type>
+			</properties>
+		</profile>				
+	</profiles>
 	<build>
 		<plugins>
 			<plugin>
@@ -100,11 +120,12 @@
 			<version>3.0.17</version>
 			<classifier>external-library</classifier>
 			<!-- for Mac -->
-<!-- 			<type>jnilib</type> -->
+<!--  			<type>jnilib</type> -->
 			<!-- for Windows -->
 			<!-- <type>dll</type> -->
 <!-- 			for Linux/CloudHub -->
-			<type>so</type>
+ 			<!-- <type>so</type> -->
+ 			<type>${external_library.type}</type>
 		</dependency>
     	<dependency>
             <groupId>org.mule.connectors</groupId>
