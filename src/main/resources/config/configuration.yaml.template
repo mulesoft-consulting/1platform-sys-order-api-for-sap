@@ -5,4 +5,9 @@ sap:
   host: 
   sysnr: 
   client: 
-  lang: 
+  lang:
+  user:
+  pass:
+  
+keystore:
+  password:

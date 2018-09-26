@@ -6,14 +6,14 @@ http://www.mulesoft.org/schema/mule/sap http://www.mulesoft.org/schema/mule/sap/
 http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd">
 
     <http:listener-config name="order-api-spec-httpListenerConfig">
-        <http:listener-connection host="0.0.0.0" port="${api.port}" protocol="HTTPS">
+        <http:listener-connection host="0.0.0.0" port="${https.port}" protocol="HTTPS">
             <tls:context>
-                <tls:key-store type="jks" alias="localhost" path="localhost.jks" keyPassword="${secure::keystore.password}" password="${secure::keystore.password}" />
+                <tls:key-store type="jks" alias="localhost" path="localhost.jks" keyPassword="${keystore.password}" password="${keystore.password}" />
             </tls:context>
         </http:listener-connection>
     </http:listener-config>
 	<sap:outbound-config name="SAP_Connection_Config" doc:name="SAP Outbound" doc:id="c6fd996d-e83a-4496-ae33-726f86db3869" logTraceFlag="true">
-		<sap:simple-connection-provider-connection applicationServerHost="${sap.host}" username="${secure::sap.user}" password="${secure::sap.pass}" systemNumber="${sap.sysnr}" client="${sap.client}" language="${sap.lang}" traceFromServerFlag="true"/>
+		<sap:simple-connection-provider-connection applicationServerHost="${sap.host}" username="${sap.user}" password="${sap.pass}" systemNumber="${sap.sysnr}" client="${sap.client}" language="${sap.lang}" traceFromServerFlag="true"/>
 	</sap:outbound-config>
 	
     <apikit:config name="order-api-spec-config" raml="order-api-spec.raml" outboundHeadersMapName="outboundHeaders" httpStatusVarName="httpStatus" />
