@@ -62,7 +62,26 @@
 							<artifactId>com.sap.conn.jco.libsapjco3</artifactId>
 						</sharedLibrary>
                     </sharedLibraries>
-				<classifier>mule-application</classifier>
+					<classifier>mule-application</classifier>
+	                <cloudHubDeployment>
+            				<uri>https://anypoint.mulesoft.com</uri>
+						<muleVersion>${mule.version}</muleVersion>
+						<username>${anypoint.username}</username>
+						<password>${anypoint.password}</password>
+						<environment>${cloudhub.environment}</environment>
+						<applicationName>${cloudhub.app}</applicationName>
+						<businessGroup>${cloudhub.bg}</businessGroup>
+						<workerType>Micro</workerType>
+	 					<properties>
+						   <!--  API MANAGER -->
+					       <anypoint.platform.analytics_base_uri>https://analytics-ingest.anypoint.mulesoft.com</anypoint.platform.analytics_base_uri>
+					       <anypoint.platform.coreservice_base_uri>https://anypoint.mulesoft.com/accounts</anypoint.platform.coreservice_base_uri>
+					       <anypoint.platform.platform_base_uri>https://anypoint.mulesoft.com/apiplatform</anypoint.platform.platform_base_uri>
+					       <anypoint.platform.contracts_base_uri>https://anypoint.mulesoft.com/apigateway/ccs</anypoint.platform.contracts_base_uri>
+					       <anypoint.platform.client_id>${env.ANYPOINT_CLIENT_ID}</anypoint.platform.client_id>
+					       <anypoint.platform.client_secret>${env.ANYPOINT_CLIENT_SECRET}</anypoint.platform.client_secret>
+	 				    </properties>
+	 				</cloudHubDeployment>				
                 </configuration>
 			</plugin>
 		</plugins>
