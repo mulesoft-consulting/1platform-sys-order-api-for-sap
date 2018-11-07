@@ -16,11 +16,11 @@ pipeline {
     }
     stage('install SAP Libs') {
       steps {
-        sh "mvn install:install-file -DgroupId=com.sap.conn.idoc -DartifactId=com.sap.conn.idoc.sapidoc3 -Dversion=3.0.17 -Dpackaging=jar -Dfile=${WORKSPACE}/3.0.17/sapidoc3.jar"
-        sh "mvn install:install-file -DgroupId=com.sap.conn.jco -DartifactId=com.sap.conn.jco.sapjco3 -Dversion=3.0.17 -Dpackaging=jar -Dfile=${WORKSPACE}/3.0.17/sapjco3.jar"
-        sh "mvn install:install-file -DgroupId=com.sap.conn.jco -DartifactId=com.sap.conn.jco.libsapjco3 -Dversion=3.0.17 -Dclassifier=external-library -Dpackaging=jnilib -Dfile=${WORKSPACE}/3.0.17/darwinintel64/libsapjco3.jnilib"
-        sh "mvn install:install-file -DgroupId=com.sap.conn.jco -DartifactId=com.sap.conn.jco.libsapjco3 -Dversion=3.0.17 -Dclassifier=external-library -Dpackaging=so -Dfile=${WORKSPACE}/3.0.17/linuxx86_64/libsapjco3.so"
-        sh "mvn install:install-file -DgroupId=com.sap.conn.jco -DartifactId=com.sap.conn.jco.libsapjco3 -Dversion=3.0.17 -Dclassifier=external-library -Dpackaging=dll -Dfile=${WORKSPACE}/3.0.17/NTAMD64/sapjco3.dll"
+        sh "mvn -B install:install-file -DgroupId=com.sap.conn.idoc -DartifactId=com.sap.conn.idoc.sapidoc3 -Dversion=3.0.17 -Dpackaging=jar -Dfile=${WORKSPACE}/3.0.17/sapidoc3.jar"
+        sh "mvn -B install:install-file -DgroupId=com.sap.conn.jco -DartifactId=com.sap.conn.jco.sapjco3 -Dversion=3.0.17 -Dpackaging=jar -Dfile=${WORKSPACE}/3.0.17/sapjco3.jar"
+        sh "mvn -B install:install-file -DgroupId=com.sap.conn.jco -DartifactId=com.sap.conn.jco.libsapjco3 -Dversion=3.0.17 -Dclassifier=external-library -Dpackaging=jnilib -Dfile=${WORKSPACE}/3.0.17/darwinintel64/libsapjco3.jnilib"
+        sh "mvn -B install:install-file -DgroupId=com.sap.conn.jco -DartifactId=com.sap.conn.jco.libsapjco3 -Dversion=3.0.17 -Dclassifier=external-library -Dpackaging=so -Dfile=${WORKSPACE}/3.0.17/linuxx86_64/libsapjco3.so"
+        sh "mvn -B install:install-file -DgroupId=com.sap.conn.jco -DartifactId=com.sap.conn.jco.libsapjco3 -Dversion=3.0.17 -Dclassifier=external-library -Dpackaging=dll -Dfile=${WORKSPACE}/3.0.17/NTAMD64/sapjco3.dll"
       }
     }
 
