@@ -11,7 +11,8 @@ pipeline {
   stages {
     stage("SAP Libs Preparation") {
       steps {
-        sh "ls -ltrh"
+        sh "mkdir saplibs"
+        sh "cd saplibs"
         git credentialsId: '233846f8-9482-458e-b3fe-1744f4c224e5', url: 'https://github.com/mulesoft-consulting/sap-libs-internal.git'
       }
     }
@@ -22,6 +23,8 @@ pipeline {
         sh "mvn -B install:install-file -DgroupId=com.sap.conn.jco -DartifactId=com.sap.conn.jco.libsapjco3 -Dversion=3.0.17 -Dclassifier=external-library -Dpackaging=jnilib -Dfile=${WORKSPACE}/3.0.17/darwinintel64/libsapjco3.jnilib"
         sh "mvn -B install:install-file -DgroupId=com.sap.conn.jco -DartifactId=com.sap.conn.jco.libsapjco3 -Dversion=3.0.17 -Dclassifier=external-library -Dpackaging=so -Dfile=${WORKSPACE}/3.0.17/linuxx86_64/libsapjco3.so"
         sh "mvn -B install:install-file -DgroupId=com.sap.conn.jco -DartifactId=com.sap.conn.jco.libsapjco3 -Dversion=3.0.17 -Dclassifier=external-library -Dpackaging=dll -Dfile=${WORKSPACE}/3.0.17/NTAMD64/sapjco3.dll"
+        sh "cd .."
+        sh "rm -rf saplibs"
       }
     }
 
@@ -29,6 +32,7 @@ pipeline {
       steps {
         configFileProvider([configFile(fileId: "${BRANCH_NAME}-sys-order-api-for-sap.yaml", replaceTokens: true, targetLocation: './src/main/resources/config/configuration.yaml')]) {
           sh 'echo "Branch NAME: $BRANCH_NAME"'
+
           sh 'ls -ltrh'
         }
 
