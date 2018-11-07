@@ -11,6 +11,7 @@ pipeline {
   stages {
     stage("SAP Libs Preparation") {
       steps {
+        sh "ls -ltrh"
         git credentialsId: '233846f8-9482-458e-b3fe-1744f4c224e5', url: 'https://github.com/mulesoft-consulting/sap-libs-internal.git'
       }
     }
