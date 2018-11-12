@@ -24,7 +24,7 @@ pipeline {
         sh "mvn -B install:install-file -DgroupId=com.sap.conn.jco -DartifactId=com.sap.conn.jco.libsapjco3 -Dversion=3.0.17 -Dclassifier=external-library -Dpackaging=so -Dfile=${WORKSPACE}/3.0.17/linuxx86_64/libsapjco3.so"
         sh "mvn -B install:install-file -DgroupId=com.sap.conn.jco -DartifactId=com.sap.conn.jco.libsapjco3 -Dversion=3.0.17 -Dclassifier=external-library -Dpackaging=dll -Dfile=${WORKSPACE}/3.0.17/NTAMD64/sapjco3.dll"
         sh 'cd ..'
-        sh" rm -rf ./saplibs")
+        sh 'rm -rf ./saplibs'
       }
     }
 
