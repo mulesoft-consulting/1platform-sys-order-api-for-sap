@@ -12,7 +12,7 @@ pipeline {
     stage("SAP Libs Preparation") {
       steps {
         sh "mkdir saplibs"
-        dir('saplibs')
+        dir('./saplibs')
         git credentialsId: '40094f04-235d-4342-8fa9-6bc6a368b8d9', url: 'https://github.com/mulesoft-consulting/sap-libs-internal.git'
       }
     }
@@ -23,7 +23,8 @@ pipeline {
         sh "mvn -B install:install-file -DgroupId=com.sap.conn.jco -DartifactId=com.sap.conn.jco.libsapjco3 -Dversion=3.0.17 -Dclassifier=external-library -Dpackaging=jnilib -Dfile=${WORKSPACE}/3.0.17/darwinintel64/libsapjco3.jnilib"
         sh "mvn -B install:install-file -DgroupId=com.sap.conn.jco -DartifactId=com.sap.conn.jco.libsapjco3 -Dversion=3.0.17 -Dclassifier=external-library -Dpackaging=so -Dfile=${WORKSPACE}/3.0.17/linuxx86_64/libsapjco3.so"
         sh "mvn -B install:install-file -DgroupId=com.sap.conn.jco -DartifactId=com.sap.conn.jco.libsapjco3 -Dversion=3.0.17 -Dclassifier=external-library -Dpackaging=dll -Dfile=${WORKSPACE}/3.0.17/NTAMD64/sapjco3.dll"
-        dir('../$WORKSPACE')
+        dir('..')
+        removdir("./saplibs")
       }
     }
 
