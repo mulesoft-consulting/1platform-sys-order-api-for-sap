@@ -13,7 +13,7 @@ pipeline {
       steps {
         sh "mkdir saplibs"
         dir('saplibs')
-        git credentialsId: '233846f8-9482-458e-b3fe-1744f4c224e5', url: 'https://github.com/mulesoft-consulting/sap-libs-internal.git'
+        git credentialsId: '40094f04-235d-4342-8fa9-6bc6a368b8d9', url: 'https://github.com/mulesoft-consulting/sap-libs-internal.git'
       }
     }
     stage('install SAP Libs') {
