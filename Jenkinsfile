@@ -14,7 +14,9 @@ pipeline {
       steps {
         configFileProvider([configFile(fileId: "${BRANCH_NAME}-sys-order-api-for-sap.yaml", replaceTokens: true, targetLocation: './src/main/resources/config/configuration.yaml')]) {
           withCredentials([file(credentialsId: 'self-signed-keystore.jks', variable: 'KEYSTORE_FILE')]){
+            sh 'cp $KEYSTORE_FILE ./src/main/resources/keystore.jks'
             sh 'echo "Branch NAME: $BRANCH_NAME"'
+
           }
         }
       }
