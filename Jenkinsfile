@@ -13,10 +13,10 @@ pipeline {
     stage('Preparation') {
       steps {
         configFileProvider([configFile(fileId: "${BRANCH_NAME}-sys-order-api-for-sap.yaml", replaceTokens: true, targetLocation: './src/main/resources/config/configuration.yaml')]) {
-          sh 'echo "Branch NAME: $BRANCH_NAME"'
-          sh 'ls -ltrh'
+          withCredentials([file(credentialsId: 'self-signed-keystore.jks', variable: 'KEYSTORE_FILE')]){
+            sh 'echo "Branch NAME: $BRANCH_NAME"'
+          }
         }
-
       }
     }
      stage('Build') {
