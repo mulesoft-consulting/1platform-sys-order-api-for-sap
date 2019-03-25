@@ -4,7 +4,7 @@ pipeline {
   }
   environment {
     DEPLOY_CREDS = credentials('deploy-anypoint-user')
-    MULE_VERSION = '4.1.2-AM'
+    MULE_VERSION = '4.1.4-AM'
     BG = "1Platform\\Retail\\Sales"
     WORKER = "Small"
   }
