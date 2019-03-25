@@ -8,8 +8,9 @@ pipeline {
     BG = "1Platform\\Retail\\Sales"
     WORKER = "Small"
   }
-    
-  stage('Preparation') {
+
+  stages{    
+    stage('Preparation') {
       steps {
         configFileProvider([configFile(fileId: "${BRANCH_NAME}-sys-order-api-for-sap.yaml", replaceTokens: true, targetLocation: './src/main/resources/config/configuration.yaml')]) {
           sh 'echo "Branch NAME: $BRANCH_NAME"'
@@ -20,16 +21,19 @@ pipeline {
     }
      stage('Build') {
        steps {
-         sh 'mvn -B clean package -DskipTests'
+         withMaven(
+          mavenSettingsConfig: 'f007350a-b1d5-44a8-9757-07c22cd2a360'){
+            sh 'mvn -B clean package -DskipTests'
+          }
        }
      }
  
      stage('Test') {
        steps {
-  withMaven(
+          withMaven(
                 mavenSettingsConfig: 'f007350a-b1d5-44a8-9757-07c22cd2a360'){
                      sh "mvn -B test"
-               }
+          }
        }
      }
  
@@ -46,6 +50,7 @@ pipeline {
          sh 'mvn -V -B -DskipTests deploy -DmuleDeploy -Dmule.version=$MULE_VERSION -Danypoint.username=$DEPLOY_CREDS_USR -Danypoint.password=$DEPLOY_CREDS_PSW -Dcloudhub.app=$APP_NAME -Dcloudhub.environment=$ENVIRONMENT -Denv.ANYPOINT_CLIENT_ID=$ANYPOINT_ENV_USR -Denv.ANYPOINT_CLIENT_SECRET=$ANYPOINT_ENV_PSW -Dcloudhub.bg=$BG -Dcloudhub.worker=$WORKER'
        }
      }
+
      stage('Deploy Production') {
          when {
            branch 'master'
