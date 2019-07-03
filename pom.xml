@@ -13,13 +13,17 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
-		<app.runtime>4.1.3</app.runtime>
-		<mule.maven.plugin.version>3.1.7</mule.maven.plugin.version>
+		<app.runtime>4.1.5</app.runtime>
+		<mule.maven.plugin.version>3.2.7</mule.maven.plugin.version>
+		<sap.library.version>3.0.19</sap.library.version>
 	</properties>
 	
 	<profiles>
 		<profile>
 			<id>Mac</id>
+			<activation>
+            		<activeByDefault>true</activeByDefault>
+        		</activation>
 			<properties>
 				<external_library.type>jnilib</external_library.type>
 			</properties>
@@ -32,9 +36,7 @@
 		</profile>
 		<profile>
 			<id>Cloudhub</id>
-			<activation>
-            		<activeByDefault>true</activeByDefault>
-        		</activation>
+			
 			<properties>
 				<external_library.type>so</external_library.type>
 			</properties>
@@ -81,6 +83,8 @@
 					       <anypoint.platform.visualizer.layer>System</anypoint.platform.visualizer.layer>
 					       <anypoint.platform.client_id>${env.ANYPOINT_CLIENT_ID}</anypoint.platform.client_id>
 					       <anypoint.platform.client_secret>${env.ANYPOINT_CLIENT_SECRET}</anypoint.platform.client_secret>
+					       <sap.user>${env.SAP_USER}</sap.user>
+						   <sap.pass>${env.SAP_PSWD}</sap.pass>
 	 				    </properties>
 	 				</cloudHubDeployment>				
                 </configuration>
@@ -119,28 +123,22 @@
 			<version>1.0.0</version>
 			<classifier>mule-plugin</classifier>
 		</dependency>
-		<dependency>
-			<groupId>com.mulesoft.connectors</groupId>
-			<artifactId>mule-sap-connector</artifactId>
-			<version>4.1.0</version>
-			<classifier>mule-plugin</classifier>
-		</dependency>
 		<!-- Install deps using installMavenDeps.sh script from 
 			https://github.com/mulesoft-consulting/sap-libs-internal -->
 		<dependency>
 			<groupId>com.sap.conn.jco</groupId>
 			<artifactId>com.sap.conn.jco.sapjco3</artifactId>
-			<version>3.0.17</version>
+			<version>${sap.library.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>com.sap.conn.idoc</groupId>
 			<artifactId>com.sap.conn.idoc.sapidoc3</artifactId>
-			<version>3.0.17</version>
+			<version>${sap.library.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>com.sap.conn.jco</groupId>
 			<artifactId>com.sap.conn.jco.libsapjco3</artifactId>
-			<version>3.0.17</version>
+			<version>${sap.library.version}</version>
 			<classifier>external-library</classifier>
 			<!-- for Mac -->
 <!--  			<type>jnilib</type> -->
@@ -151,9 +149,15 @@
  			<type>${external_library.type}</type>
 		</dependency>
     	<dependency>
+            <groupId>com.mulesoft.connectors</groupId>
+            <artifactId>mule-sap-connector</artifactId>
+            <version>4.2.1</version>
+            <classifier>mule-plugin</classifier>
+        </dependency>
+    	<dependency>
             <groupId>org.mule.connectors</groupId>
             <artifactId>mule-file-connector</artifactId>
-            <version>1.1.3</version>
+            <version>1.1.2</version>
             <classifier>mule-plugin</classifier>
         </dependency>
     </dependencies>
