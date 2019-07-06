@@ -32,7 +32,7 @@
 	        </http:listener>
 	        <apikit:router config-ref="order-api-spec-config" />
 	        <error-handler>
-	            <on-error-propagate type="APIKIT:BAD_REQUEST">
+	            <on-error-propagate type="APIKIT:BAD_REQUEST" enableNotifications="true" logException="true">
 	                <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd" doc:id="c047077d-b049-4d7a-9422-091872959e74">
 	                    <ee:message>
 	                        <ee:set-payload><![CDATA[%dw 2.0
@@ -45,16 +45,16 @@
 	                    </ee:variables>
 	                </ee:transform>
 	            </on-error-propagate>
-	            <on-error-propagate type="APIKIT:NOT_FOUND">
-	                <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	            <on-error-propagate type="APIKIT:NOT_FOUND" enableNotifications="true" logException="true">
+	                <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd" doc:id="c589fb44-6169-4932-97e2-4cfe61eb68b0">
 	                    <ee:message>
 	                        <ee:set-payload><![CDATA[%dw 2.0
-	output application/json
-	---
-	{message: "Resource not found"}]]></ee:set-payload>
+output application/json
+---
+{message: "Resource not found"}]]></ee:set-payload>
 	                    </ee:message>
 	                    <ee:variables>
-	                        <ee:set-variable variableName="httpStatus">404</ee:set-variable>
+	                        <ee:set-variable variableName="httpStatus"><![CDATA[404]]></ee:set-variable>
 	                    </ee:variables>
 	                </ee:transform>
 	            </on-error-propagate>
@@ -428,9 +428,29 @@ output application/xml
 				<sap:execute-synchronous-remote-function-call doc:name="Retrieve Order from SAP" doc:id="40a8f8f5-55d3-4921-b0d8-941c93fc1abd" config-ref="SAP_Connection_Config" key="BAPISDORDER_GETDETAILEDLIST">
 				<error-mapping sourceType="SAP:EXECUTION_ERROR" targetType="APP:ORDER_DOES_NOT_EXIST" />
 			</sap:execute-synchronous-remote-function-call>
-				<ee:transform doc:name="Build Response" doc:id="86d12cc0-67be-4b78-b137-ad14a961682c" >
-					<ee:message >
-						<ee:set-payload ><![CDATA[%dw 2.0
+				<logger level="INFO" doc:name="Logger" doc:id="a7dc5af5-b19a-4f7e-af08-1e6cda6f7b89" message="#[output application/xml ---payload]"/>
+				<choice doc:name="Choice" doc:id="45e82cd0-9b5b-491b-81e0-e29385ed51b5" >
+				<when expression="#[payload.BAPISDORDER_GETDETAILEDLIST.tables.ORDER_HEADERS_OUT == null]">
+					<ee:transform doc:name="Not Found Response" doc:id="00051d1f-9fc6-489c-bb75-65c1dda0a19f" >
+						<ee:message >
+							<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Resource not found"}
+	]]></ee:set-payload>
+						</ee:message>
+						<ee:variables >
+							<ee:set-variable variableName="httpStatus" ><![CDATA[%dw 2.0
+output application/java
+---
+404]]></ee:set-variable>
+						</ee:variables>
+					</ee:transform>
+				</when>
+				<otherwise >
+					<ee:transform doc:name="Build Response" doc:id="86d12cc0-67be-4b78-b137-ad14a961682c">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
 output application/json
 var deliveryMethod = {
 	PI: "Pickup",
@@ -474,7 +494,9 @@ var istatus = payload.BAPISDORDER_GETDETAILEDLIST."tables".ORDER_STATUSITEMS_OUT
 	]]></ee:set-payload>
 					</ee:message>
 				</ee:transform>
-				<error-handler >
+				</otherwise>
+			</choice>
+			<error-handler >
 					<on-error-continue enableNotifications="false" logException="false" doc:name="On Error Continue" doc:id="0a704c4f-01a5-46a6-af9d-0ef98b4a4d21" type="APP:ORDER_DOES_NOT_EXIST">
 						<ee:transform doc:name="Build Error Response" doc:id="a8073ae3-1b4d-4841-abb8-f8354961410e" >
 							<ee:message >
