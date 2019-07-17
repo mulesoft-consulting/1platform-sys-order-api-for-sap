@@ -179,7 +179,7 @@ var sales = payload.BAPI_SALESORDER_GETLIST.tables.SALES_ORDERS
 		totalItems: sizeOf(payload.BAPI_SALESORDER_GETLIST.tables.SALES_ORDERS.*row default []),
 		pagingOffset: 0
 	},
-	oders: (payload.BAPI_SALESORDER_GETLIST.tables.SALES_ORDERS.*row map( header , i ) -> {
+	orders: (payload.BAPI_SALESORDER_GETLIST.tables.SALES_ORDERS.*row map( header , i ) -> {
 		orderId: header.SD_DOC,
 		totalAmount: header.NET_VALUE,
 		status: status[header.DOC_STATUS as String] default "UNKNOWN",
