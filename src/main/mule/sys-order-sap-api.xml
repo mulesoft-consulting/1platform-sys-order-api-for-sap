@@ -159,7 +159,8 @@ output application/xml
 				<sap:execute-synchronous-remote-function-call doc:name="Execute BAPI / Function over sRFC" doc:id="e63b70bd-19f4-4988-b318-15551393621c" config-ref="SAP_Connection_Config" key="BAPI_SALESORDER_GETLIST">
 					<error-mapping sourceType="SAP:EXECUTION_ERROR" targetType="APP:NO_ORDERS" />
 				</sap:execute-synchronous-remote-function-call>
-				<ee:transform doc:name="Transform Message" doc:id="feeb91d5-4426-432c-af61-45417c6884c9" >
+				<logger level="INFO" doc:name="Logger" doc:id="dedd284d-3187-419b-a016-54b8143b2397" message="#[output application/xml ---payload]"/>
+			<ee:transform doc:name="Transform Message" doc:id="feeb91d5-4426-432c-af61-45417c6884c9" >
 					<ee:message >
 						<ee:set-payload ><![CDATA[%dw 2.0
 output application/json
@@ -181,7 +182,7 @@ var sales = payload.BAPI_SALESORDER_GETLIST.tables.SALES_ORDERS
 	},
 	orders: (payload.BAPI_SALESORDER_GETLIST.tables.SALES_ORDERS.*row map( header , i ) -> {
 		orderId: header.SD_DOC,
-		totalAmount: header.NET_VALUE,
+		totalAmount: header.NET_VALUE as Number,
 		status: status[header.DOC_STATUS as String] default "UNKNOWN",
 //		Auto-generado		
 		trackingNumber: (ceil(random() * 10000000000)) as String,
@@ -195,8 +196,17 @@ var sales = payload.BAPI_SALESORDER_GETLIST.tables.SALES_ORDERS
 				id: row.MATERIAL as String
 			},
 			quantity: {
-				ordered: row.REQ_QTY,
-				shipped: row.DLV_QTY
+				ordered: row.REQ_QTY as Number,
+				shipped: row.DLV_QTY as Number
+			},
+			pricing: {
+				itemAmount: row.NET_PRICE as Number,
+				discountedAmount: 0,
+				totalAmount: row.NET_VALUE as Number,
+				currency: {
+					code: row.CURRENCY
+				}
+			
 			},
 			delivery: {
 				method: deliveryMethod[row.STATUS_DOC as String] default "Shipment"
@@ -473,7 +483,7 @@ var istatus = payload.BAPISDORDER_GETDETAILEDLIST."tables".ORDER_STATUSITEMS_OUT
 	trackingNumber: (ceil(random() * 10000000000)) as String,
 	status: status[hstatus.DLV_STAT_H default "B" as String],
 	sourceSystem: "SAP",
-	totalAmount: header.NET_VAL_HD,
+	totalAmount: header.NET_VAL_HD as Number,
 	orderItems: items.*row map (item, i) -> {
 		delivery: {
 			method: status[((istatus.*row filter ($.ITM_NUMBER == item.ITM_NUMBER)).DELIV_STAT default "C")[0]]
@@ -483,7 +493,16 @@ var istatus = payload.BAPISDORDER_GETDETAILEDLIST."tables".ORDER_STATUSITEMS_OUT
 			id: item.MATERIAL
 		},
 		quantity: {
-			ordered: item.TARGET_QTY as Number
+			ordered: item.REQ_QTY as Number
+		},
+		pricing: {
+			itemAmount: item.NET_PRICE as Number,
+			discountedAmount: 0,
+			totalAmount: item.NET_VALUE as Number,
+			currency: {
+				code: item.CURRENCY
+			}
+			
 		},
 		orderLine: item.ITM_NUMBER,
 		location: {
