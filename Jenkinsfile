@@ -4,9 +4,10 @@ pipeline {
   }
   environment {
     DEPLOY_CREDS = credentials('deploy-anypoint-user')
-    MULE_VERSION = '4.1.2-AM'
+    MULE_VERSION = '4.1.5'
     BG = "1Platform\\Retail\\Sales"
     WORKER = "Small"
+    SAP_CREDS = credentials("$BRANCH_NAME-sys-order-api-for-sap")
   }
 
   stages{    
@@ -25,7 +26,7 @@ pipeline {
        steps {
          withMaven(
           mavenSettingsConfig: 'f007350a-b1d5-44a8-9757-07c22cd2a360'){
-            sh 'mvn -B clean package -DskipTests'
+            sh 'mvn -PCloudhub -B clean package -DskipTests'
           }
        }
      }
@@ -34,7 +35,7 @@ pipeline {
        steps {
           withMaven(
                 mavenSettingsConfig: 'f007350a-b1d5-44a8-9757-07c22cd2a360'){
-                     sh "mvn -B test"
+                     sh "mvn -PCloudhub -B test"
           }
        }
      }
@@ -51,7 +52,7 @@ pipeline {
        steps {
          withMaven(
           mavenSettingsConfig: 'f007350a-b1d5-44a8-9757-07c22cd2a360'){
-            sh 'mvn -V -B -DskipTests deploy -DmuleDeploy -Dmule.version=$MULE_VERSION -Danypoint.username=$DEPLOY_CREDS_USR -Danypoint.password=$DEPLOY_CREDS_PSW -Dcloudhub.app=$APP_NAME -Dcloudhub.environment=$ENVIRONMENT -Denv.ANYPOINT_CLIENT_ID=$ANYPOINT_ENV_USR -Denv.ANYPOINT_CLIENT_SECRET=$ANYPOINT_ENV_PSW -Dcloudhub.bg=$BG -Dcloudhub.worker=$WORKER'
+            sh 'mvn -V -B -PCloudhub -DskipTests deploy -DmuleDeploy -Dmule.version=$MULE_VERSION -Danypoint.username=$DEPLOY_CREDS_USR -Danypoint.password=$DEPLOY_CREDS_PSW -Dcloudhub.app=$APP_NAME -Dcloudhub.environment=$ENVIRONMENT -Denv.ANYPOINT_CLIENT_ID=$ANYPOINT_ENV_USR -Denv.ANYPOINT_CLIENT_SECRET=$ANYPOINT_ENV_PSW -Dcloudhub.bg=$BG -Dcloudhub.worker=$WORKER -Denv.SAP_USER=$SAP_CREDS_USR -Denv.SAP_PSWD=$SAP_CREDS_PSW'
           }
        }
      }
@@ -68,7 +69,7 @@ pipeline {
          steps {
           withMaven(
             mavenSettingsConfig: 'f007350a-b1d5-44a8-9757-07c22cd2a360'){
-            sh 'mvn -V -B -DskipTests deploy -DmuleDeploy -Dmule.version=$MULE_VERSION -Danypoint.username=$DEPLOY_CREDS_USR -Danypoint.password=$DEPLOY_CREDS_PSW -Dcloudhub.app=$APP_NAME -Dcloudhub.environment=$ENVIRONMENT -Denv.ANYPOINT_CLIENT_ID=$ANYPOINT_ENV_USR -Denv.ANYPOINT_CLIENT_SECRET=$ANYPOINT_ENV_PSW -Dcloudhub.bg=$BG -Dcloudhub.worker=$WORKER'
+            sh 'mvn -V -B -PCloudhub -DskipTests deploy -DmuleDeploy -Dmule.version=$MULE_VERSION -Danypoint.username=$DEPLOY_CREDS_USR -Danypoint.password=$DEPLOY_CREDS_PSW -Dcloudhub.app=$APP_NAME -Dcloudhub.environment=$ENVIRONMENT -Denv.ANYPOINT_CLIENT_ID=$ANYPOINT_ENV_USR -Denv.ANYPOINT_CLIENT_SECRET=$ANYPOINT_ENV_PSW -Dcloudhub.bg=$BG -Dcloudhub.worker=$WORKER -Denv.SAP_USER=$SAP_CREDS_USR -Denv.SAP_PSWD=$SAP_CREDS_PSW'
           }
          }
      }
