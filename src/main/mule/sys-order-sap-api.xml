@@ -699,7 +699,7 @@ var formattedDate=(creationDate replace /\d{2}:\d{2}:\d{2} \w{3} / with '') as D
 var formattedTime=((creationTime[11 to 18]) ++ '.000') as LocalTime {format: "HH:mm:ss.SSS"} as String
 var finalDateTime= (formattedDate ++ ' ' ++ formattedTime ++ ' ' ++ timeZone) as DateTime {format: "yyyy-MM-dd HH:mm:ss zz"}
 ---
-finalDateTime as String]]></ee:set-payload>
+finalDateTime as String as String {format: "yyyy-MM-dd'T'HH:mm:ssxxx"}]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
 	</flow>
