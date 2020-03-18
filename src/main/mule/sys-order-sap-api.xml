@@ -154,6 +154,15 @@ output application/xml
 	}
 }]]></ee:set-payload>
 				</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="pagination" ><![CDATA[%dw 2.0
+output application/java
+---
+{
+	pagingOffset: attributes.queryParams.pagingOffset default 0,
+	maxResults: attributes.queryParams.maxResults default 10
+}]]></ee:set-variable>
+			</ee:variables>
 			</ee:transform>
 			<try doc:name="Try" doc:id="2027a71c-9a2d-464b-9e6c-6fe433a67315" transactionalAction="ALWAYS_BEGIN">
 				<sap:execute-synchronous-remote-function-call doc:name="Execute BAPI / Function over sRFC" doc:id="e63b70bd-19f4-4988-b318-15551393621c" config-ref="SAP_Connection_Config" key="BAPI_SALESORDER_GETLIST">
@@ -174,14 +183,18 @@ var status = {
 	P: "Processing"
 }
 var sales = payload.BAPI_SALESORDER_GETLIST.tables.SALES_ORDERS
+var allOrders=payload.BAPI_SALESORDER_GETLIST.tables.SALES_ORDERS.*row default []
+var filteredOrders=(allOrders[0 to vars.pagination.maxResults] default []) orderBy (-$.SD_DOC)
 ---
 {
 	meta: {
-		totalItems: sizeOf(payload.BAPI_SALESORDER_GETLIST.tables.SALES_ORDERS.*row default []),
-		pagingOffset: 0
+		totalItems: sizeOf(allOrders),
+		pagingOffset: vars.pagination.pagingOffset,
+		maxResults: vars.pagination.maxResults
 	},
-	orders: (payload.BAPI_SALESORDER_GETLIST.tables.SALES_ORDERS.*row map( header , i ) -> {
+	orders: (filteredOrders map( header , i ) -> {
 		orderId: header.SD_DOC,
+		orderDateTime: lookup('convert-sap-date-to-datetimeFlow', {creationDate: header.CREATION_DATE, creationTime: header.CREATION_TIME}),
 		totalAmount: header.NET_VALUE as Number,
 		status: status[header.DOC_STATUS as String] default "UNKNOWN",
 //		Auto-generado		
@@ -217,22 +230,20 @@ var sales = payload.BAPI_SALESORDER_GETLIST.tables.SALES_ORDERS
 					</ee:message>
 				</ee:transform>
 				<error-handler >
-					<on-error-continue enableNotifications="false" logException="false" doc:name="On Error Continue" doc:id="89914ef1-d34f-42f7-920e-b31c2afa4494" type="ANY">
+					<on-error-continue enableNotifications="false" logException="true" doc:name="On Error Continue" doc:id="89914ef1-d34f-42f7-920e-b31c2afa4494" type="ANY">
 						<ee:transform doc:name="Build Error Response" doc:id="3adfb0a3-d400-4334-910d-245bc64f7b16" >
 							<ee:message >
 								<ee:set-payload ><![CDATA[%dw 2.0
 output application/json
 ---
-{
-	meta: {
-		totalItems: 0,
-		pagingOffset: 0
-	},
-	orders: []
-}
+error
 		]]></ee:set-payload>
 							</ee:message>
 							<ee:variables >
+							<ee:set-variable variableName="httpStatus" ><![CDATA[%dw 2.0
+output application/java
+---
+500]]></ee:set-variable>
 							</ee:variables>
 						</ee:transform>
 					</on-error-continue>
@@ -472,13 +483,15 @@ var status = {
 	C: "Completed"
 	
 }
-var header = payload.BAPISDORDER_GETDETAILEDLIST.tables.ORDER_HEADERS_OUT[0]
+var header = payload.BAPISDORDER_GETDETAILEDLIST."tables".ORDER_HEADERS_OUT[0]
 var items = payload.BAPISDORDER_GETDETAILEDLIST."tables".ORDER_ITEMS_OUT
 var hstatus =  payload.BAPISDORDER_GETDETAILEDLIST."tables".ORDER_STATUSHEADERS_OUT[0]
 var istatus = payload.BAPISDORDER_GETDETAILEDLIST."tables".ORDER_STATUSITEMS_OUT
+var hdate = payload.BAPISDORDER_GETDETAILEDLIST."tables".ORDER_HEADERS_OUT[0].REC_DATE
 ---
 {
 	orderId: header.DOC_NUMBER,
+	orderDateTime: lookup('convert-sap-date-to-datetimeFlow', {creationDate: header.REC_DATE, creationTime: header.REC_TIME}),
 	customerId: header.SOLD_TO,
 	trackingNumber: (ceil(random() * 10000000000)) as String,
 	status: status[hstatus.DLV_STAT_H default "B" as String],
@@ -673,4 +686,21 @@ output application/json
 				</otherwise>
 			</choice>
 	    </flow>
+	<flow name="convert-sap-date-to-datetimeFlow" doc:id="9c031dba-191f-4a87-9a24-2a320916c5db" >
+		<ee:transform doc:name="Parse SAP Date" doc:id="0479579a-521c-430d-adc8-3da308390c7d" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+var creationDate=payload.creationDate
+var creationTime=payload.creationTime
+//
+var timeZone=creationDate[20 to 22]
+var formattedDate=(creationDate replace /\d{2}:\d{2}:\d{2} \w{3} / with '') as Date {format: "eee MMM dd yyyy"} as String
+var formattedTime=((creationTime[11 to 18]) ++ '.000') as LocalTime {format: "HH:mm:ss.SSS"} as String
+var finalDateTime= (formattedDate ++ ' ' ++ formattedTime ++ ' ' ++ timeZone) as DateTime {format: "yyyy-MM-dd HH:mm:ss zz"}
+---
+finalDateTime as String as String {format: "yyyy-MM-dd'T'HH:mm:ssxxx"}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
 	</mule>
