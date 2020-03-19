@@ -196,7 +196,7 @@ var filteredOrders=(allOrders[0 to vars.pagination.maxResults] default []) order
 		orderId: header.SD_DOC,
 		orderDateTime: lookup('convert-sap-date-to-datetimeFlow', {creationDate: header.CREATION_DATE, creationTime: header.CREATION_TIME}),
 		totalAmount: header.NET_VALUE as Number,
-		status: status[header.STATUS_DOC as String default "B"],
+		status: status[header.STATUS_DOC as String default "A"],
 //		Auto-generado		
 		trackingNumber: (ceil(random() * 10000000000)) as String,
 //		CustomerID linkeado al CRM
@@ -494,7 +494,7 @@ var hdate = payload.BAPISDORDER_GETDETAILEDLIST."tables".ORDER_HEADERS_OUT[0].RE
 	orderDateTime: lookup('convert-sap-date-to-datetimeFlow', {creationDate: header.REC_DATE, creationTime: header.REC_TIME}),
 	customerId: header.SOLD_TO,
 	trackingNumber: (ceil(random() * 10000000000)) as String,
-	status: status[hstatus.DLV_STAT_H default "B" as String],
+	status: status[hstatus.DLV_STAT_H default "A" as String],
 	sourceSystem: "SAP",
 	totalAmount: header.NET_VAL_HD as Number,
 	orderItems: items.*row map (item, i) -> {
@@ -570,9 +570,9 @@ var deliveryMethod = {
 	SH: "SHIPMENT"
 }
 var status = {
-	D: "Draft",
-	C: "Completed",
-	P: "Processing"
+	A: "Draft",
+	B: "Processing",
+	C: "Completed"
 }
 ---
 {
