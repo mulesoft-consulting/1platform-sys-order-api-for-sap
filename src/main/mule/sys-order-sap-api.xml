@@ -178,9 +178,9 @@ var deliveryMethod = {
 	SH: "Shipment"
 }
 var status = {
-	D: "Draft",
-	C: "Completed",
-	P: "Processing"
+	A: "Draft",
+	B: "Processing",
+	C: "Completed"
 }
 var sales = payload.BAPI_SALESORDER_GETLIST.tables.SALES_ORDERS
 var allOrders=payload.BAPI_SALESORDER_GETLIST.tables.SALES_ORDERS.*row default []
@@ -196,7 +196,7 @@ var filteredOrders=(allOrders[0 to vars.pagination.maxResults] default []) order
 		orderId: header.SD_DOC,
 		orderDateTime: lookup('convert-sap-date-to-datetimeFlow', {creationDate: header.CREATION_DATE, creationTime: header.CREATION_TIME}),
 		totalAmount: header.NET_VALUE as Number,
-		status: status[header.DOC_STATUS as String] default "UNKNOWN",
+		status: status[header.STATUS_DOC as String default "B"],
 //		Auto-generado		
 		trackingNumber: (ceil(random() * 10000000000)) as String,
 //		CustomerID linkeado al CRM
